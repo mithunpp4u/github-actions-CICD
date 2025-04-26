@@ -85,14 +85,15 @@ jobs:
 
             - name: update tag in kuberenetes deployment
               run: |
-                  cd kuberbernetes/productcatalog
-                  sed -i "s|image: .*|image: ${{ secrets.DOCKER_USERNAME }}/product-catalog:${{ github.run_id }}|g" deployment.yaml
+                  
+                  
+                  sed -i "s|image: .*|image: ${{ secrets.DOCKER_USERNAME }}/product-catalog:${{ github.run_id }}|g" kubernetes/productcatalog/deploy.yaml
                   
             - name: commit changes
               run: |
                   git config --global user.name "mithunpp4u@gmail.com"
                   git config --global user.email "mithunpp4u@gmail.com"
-                  git add .
+                  git add kubernetes/productcatalog/deploy.yaml
                   git commit -m "[CI]:Update Kubernetes deployment image tag"
                   git push origin HEAD:main -f
 
