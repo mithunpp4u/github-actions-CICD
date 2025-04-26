@@ -61,18 +61,42 @@ jobs:
                   version: latest
 
             - name: login to dockerhub
-              uses: docker/login-action@v2
+              uses: docker/login-action@v3
               with:
                   username: ${{ secrets.DOCKER_USERNAME }}
                   password: ${{ secrets.DOCKER_TOKEN }}
 
             - name: docker push
-              uses: docker/build-push-action@v4
+              uses: docker/build-push-action@v6
               with:
                   context: src/product-catalog
                   file: src/product-catalog/Dockerfile
                   push: true
                   tags: ${{ secrets.DOCKER_USERNAME }}/product-catalog:${{ github.run_id}}
+
+    updatek8s:
+       runs-on: ubuntu-latest
+       needs: docker_build
+       steps:
+            - name: checkout code
+              uses: actions/checkout@v4
+              with:
+                  ${{secrets.GITHHUB_TOKEN}}
+
+            - name: update tag in kuberenetes deployment
+              run: |
+                  cd kuberbernetes/productcatalog
+                  sed -i "s|image: .*|image: ${{ secrets.DOCKER_USERNAME }}/product-catalog:${{ github.run_id }}|g" deployment.yaml
+                  
+            - name: commit changes
+              run: |
+                  git config --global user.name "mithunpp4u@gmail.com"
+                  git config --global user.email "mithunpp4u@gmail.com"
+                  git add .
+                  git commit -m "[CI]:Update Kubernetes deployment image tag"
+                  git push origin HEAD:main -f
+
+           
 
 
 
